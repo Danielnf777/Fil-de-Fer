@@ -6,7 +6,7 @@
 /*   By: danavarr <danavarr@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/10 23:52:21 by danavarr          #+#    #+#             */
-/*   Updated: 2024/11/21 17:25:35 by danavarr         ###   ########.fr       */
+/*   Updated: 2024/11/25 02:50:58 by danavarr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "fdf.h"
@@ -26,8 +26,7 @@ int	ft_chr(const char *s, int c)
 	}
 	return (0);
 }
-
-int	atohex(char *element)
+int             atohex(char *element)
 {
 	int	i;
 
@@ -40,22 +39,55 @@ int	atohex(char *element)
 	while (*element != '\0')
 	{
 		if (*element >= 'a' && *element <= 'f')
-		{
 			i = (i * 16) + *element - 87;
-			element++;
-		}
 		if (*element >= 'A' && *element <= 'F')
-		{
 			i = (i * 16) + *element - 55;
-			element++;
-		}
 		if (*element >= '0' && *element <= '9')
 		{
 			i = (i * 16) + *element - '0';
-			element++;
 		}
-		if (*element == '\n')
-			element++;
+		element++;
 	}
 	return (i);
+}
+
+int	counter(char const *s, char c)
+{
+	int	count;
+
+	count = 0;
+	while (*s)
+	{
+		while (*s == c)
+			s++;
+		if (*s != '\0' && *s)
+			count++;
+		while (*s != '\0' && *s != c)
+			s++;
+	}
+	return (count);
+}
+
+int	free_malloc(t_buffer	*start)
+{
+	mlx_destroy_display(start->init);
+	free(start->init);
+	return (MALLOC_ERROR);
+}
+
+void	error_map(t_grid *point, char *get_line, char **elements)
+{
+	int	i;
+
+	i = 0;
+	if (point->columns != counter(get_line, ' '))
+		{
+			while (elements[i])
+			{
+				free(elements[i]);
+				i++;
+			}
+			free(get_line);
+			exit (0);
+		}
 }
