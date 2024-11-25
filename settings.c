@@ -6,7 +6,7 @@
 /*   By: danavarr <danavarr@student.42barcel>       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/10 23:50:14 by danavarr          #+#    #+#             */
-/*   Updated: 2024/11/22 19:56:27 by danavarr         ###   ########.fr       */
+/*   Updated: 2024/11/25 04:14:14 by danavarr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 #include "fdf.h"
@@ -19,14 +19,9 @@ void	set_coordinates(t_grid **vertex, int j, int i)
 	float	new_x;
 	float	new_y;
 
-	offset = 20 * i;
-	offset_y = 20 * j;
+	offset = 30 * i;
+	offset_y = 30 * j;
 	frame = 0;
-//	if (j == 0 && i == 0)
-//	{
-//		vertex[j][i].x += frame;
-//		vertex[j][i].y += frame;
-//	}
 	vertex[j][i].x = i + offset + frame + 900;
 	vertex[j][i].y = j + offset_y + frame - 300;
 	new_x = vertex[j][i].x;
@@ -36,27 +31,27 @@ void	set_coordinates(t_grid **vertex, int j, int i)
 //	vertex[j][i].y = (((new_x + new_y) - (vertex[j][i].z * 15)) * 
 //		sin(M_PI / 6));
 }
-
-int	counter(char const *s, char c)
+/*
+void	set_color(t_grid *point, float steps, float xe, float ye)
 {
-	int	count;
+	float	red;
+	float	green;
+	float	blue;
+	int	i;
 
-	count = 0;
-	while (*s)
+	i = 0;
+	while (i <= point->steps)
 	{
-		while (*s == c)
-			s++;
-		if (*s != '\0' && *s)
-	//	{
-			count++;
-	//		if (*s == '\n')
-	//			count--;
-	//	}
-		while (*s != '\0' && *s != c)
-			s++;
+		red = ((point->steps - i) / point->steps)
+			* ((point->color >> 16) + (i / point->steps));
+		green = ((point->steps - i) / point->steps)
+			* ((point->color >> 8) + (i / point->steps));
+		blue = ((point->steps - i) / point->steps)
+			* ((point->color & 0xFF) + (i / point->steps));
+
+		i++;
 	}
-	return (count);
-}
+*/
 
 void	set_grid(t_grid *point, char *argv)
 {
@@ -73,85 +68,96 @@ void	set_grid(t_grid *point, char *argv)
 		free(get_line);
 		get_line = get_next_line(fd);
 	}
-	ft_printf("row = %d\n", point->row);
-	ft_printf("columns = %d\n", point->columns);
 	close(fd);
 }
 
-t_grid	**set_widht(t_grid *point, char *argv)
+t_grid	**store_coordinates(t_grid *point, char *argv)
 {
 	int		fd;
-	int		i;
 	int		j;
 	t_grid	**vertex;
 	char	*get_line;
 	char	**elements;
-	char	*temp;
 
 	vertex = malloc(point->row * sizeof(t_grid));
 	if (!vertex)
 		return (NULL);
-	i = 0;
 	j = 0;
 	fd = open(argv, O_RDONLY);
 	get_line = get_next_line(fd);
 	while (get_line != NULL)
 	{
 		elements = ft_split(get_line, ' ');
-		if (point->columns != counter(get_line, ' '))
-		{
-			while (elements[i])
-			{
-				free(elements[i]);
-				i++;
-			}
-			free(get_line);
-			exit (0);
-		}
+		error_map(point, get_line, elements);
+		fill_vertex(elements, vertex, j, point);
+		free_elements(elements, get_line);
+		j++;
+		get_line = get_next_line(fd);
+	}
+	close(fd);
+	return (vertex);
+}
+
+/*
+t_grid	**store_coordinates(t_grid *point, char *argv)
+{
+//	int		fd;
+	int		i;
+	int		j;
+	t_grid	**vertex;
+	char	*get_line;
+	char	**elements;
+
+	vertex = malloc(point->row * sizeof(t_grid));
+	if (!vertex)
+		return (NULL);
+	i = 0;
+	j = 0;
+	point->fd = open(argv, O_RDONLY);
+	get_line = get_next_line(point->fd);
+	while (get_line != NULL)
+	{
+		elements = ft_split(get_line, ' ');
+		error_map(point, get_line, elements);
 		vertex[j] = malloc(point->columns * sizeof(t_grid));
 		if (!vertex[j])
 			// free all previous allocatins
 			return (NULL);
 		while (elements[i])
 		{
+			//dates_xy(elements[i], j, i);
 			vertex[j][i].color = 0x00CC00;
 			if (ft_chr(elements[i], ',') == 1)
 			{
-				temp = elements[i];
-				vertex[j][i].color = atohex(temp);
-				ft_printf("color =  %d\n", vertex[j][i].color);
+				vertex[j][i].color = atohex(elements[i]);
+				ft_printf("88color =  %d\n", vertex[j][i].color);
 			}
 			vertex[j][i].z = ft_atoi(elements[i]);
 			set_coordinates(vertex, j, i);
 			i++;
 		}
+		free(get_line);
+		i = 0;
+		free_elements(elements, get_line);
+//		while (elements[i])
+//		{
+//			free(elements[i]);
+//			i++;
+//		}
+		free(elements);
 		i = 0;
 		j++;
-		free(get_line);
-		free(elements);
-		get_line = get_next_line(fd);
+		get_line = get_next_line(point->fd);
 	}
-/*	i = 0;
-	j = 0;
-	while (i < point->row)
-	{
-		while (j < point->columns)
-		{
-			ft_printf("first_point %d = %d\n",j, coordinates[i][j].z);
-			j++;
-		}
-		j = 0;
-		i++;
-	}*/
-	close(fd);
+	close(point->fd);
 	return (vertex);
+//	return (dates_xy
 }
-
+*/
 void	set_line(t_grid *point, float xe, float ye)
 {
 	float	dist_x;
 	float	dist_y;
-	float	steps;
 
 	dist_x = xe - point->x;
 	dist_y = ye - point->y;
@@ -160,15 +166,55 @@ void	set_line(t_grid *point, float xe, float ye)
 	if (dist_y < 0)
 		dist_y = dist_y * (-1);
 	if (dist_x > dist_y)
-		steps = (dist_x);
+		point->steps = (dist_x);
 	else
-		steps = (dist_y);
-	point->increase_x = (dist_x) / steps ;
-	point->increase_y = (dist_y) / steps;
+		point->steps = (dist_y);
+	point->increase_x = (dist_x) / point->steps ;
+	point->increase_y = (dist_y) / point->steps;
 	if (point->x > xe)
 		point->increase_x *= -1;
 	if (point->y > ye)
 		point->increase_y *= -1;
 	point->x = point->x + point->increase_x;
 	point->y = point->y + point->increase_y;
+//	set_color(point, steps, xe, ye);
 }
+int	fill_vertex(char **elements, t_grid **vertex, int j, t_grid *point)
+{
+	int	i;
+	
+	i = 0;
+	vertex[j] = malloc(point->columns * sizeof(t_grid));
+	if (!vertex[j])
+		// free all previous allocatins
+		return (MALLOC_ERROR);
+	while (elements[i])
+		{
+			//dates_xy(elements[i], j, i);
+			vertex[j][i].color = 0x00CC00;
+			if (ft_chr(elements[i], ',') == 1)
+			{
+				vertex[j][i].color = atohex(elements[i]);
+				ft_printf("88color =  %d\n", vertex[j][i].color);
+			}
+			vertex[j][i].z = ft_atoi(elements[i]);
+			set_coordinates(vertex, j, i);
+			i++;
+		}
+	return (0);
+}
+
+void	free_elements(char **elements, char *get_line)
+{
+	int	i;
+
+	free(get_line);
+	i = 0;
+	while (elements[i])
+	{
+		free(elements[i]);
+		i++;
+	}
+	free(elements);
+}
+
